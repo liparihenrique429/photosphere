@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoSphere - Entrar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="auth-container">
+        <h1 class="logo-title">📸 PhotoSphere</h1>
+        <p class="logo-subtitle">Partilha os teus momentos com o mundo</p>
+        <div id="alert-box" class="alert-message"></div>
+
+        <!-- 1. LOGIN -->
+        <div id="login-box" class="form-box active">
+            <h2>Iniciar Sessão</h2>
+            <form onsubmit="handleLogin(event)">
+                <div class="input-group"><label>E-mail</label><input type="email" id="login-email" required placeholder="o_teu_email@exemplo.com"></div>
+                <div class="input-group"><label>Palavra-passe</label><input type="password" id="login-pass" required placeholder="••••••••"></div>
+                <button type="submit" class="auth-btn">Entrar</button>
+            </form>
+            <p class="switch-text">Não tens conta? <a href="#" onclick="toggleForm('register')">Regista-te aqui</a></p>
+        </div>
+
+        <!-- 2. REGISTO -->
+        <div id="register-box" class="form-box">
+            <h2>Criar Conta</h2>
+            <form onsubmit="handleRegister(event)">
+                <div class="input-group"><label>Nickname</label><input type="text" id="reg-nick" required placeholder="ex: @cyber_coder"></div>
+                <div class="input-group"><label>E-mail</label><input type="email" id="reg-email" required placeholder="o_teu_email@exemplo.com"></div>
+                <div class="input-group"><label>Palavra-passe</label><input type="password" id="reg-pass" required placeholder="••••••••"></div>
+                <button type="submit" class="auth-btn signup">Criar Conta</button>
+            </form>
+            <p class="switch-text">Já tens uma conta? <a href="#" onclick="toggleForm('login')">Inicia sessão</a></p>
+        </div>
+
+        <!-- 3. CONFIGURAR FOTO DE PERFIL -->
+        <div id="avatar-box" class="form-box">
+            <h2>Escolha a sua Foto de Perfil</h2>
+            <p class="setup-text">Esta é a sua primeira visita! Escolha uma imagem de perfil para começar.</p>
+            <div class="profile-preview-container">
+                <img id="profile-preview" src="https://dicebear.com" alt="Preview">
+            </div>
+            <div class="upload-options">
+                <label for="file-input" class="upload-label">📁 Escolher do PC</label>
+                <input type="file" id="file-input" accept="image/*" onchange="previewImage(event)">
+            </div>
+            <button onclick="saveProfilePicture()" class="auth-btn signup">Confirmar Perfil</button>
+        </div>
+    </div>
+
+    <script>
+        let currentEmail = "";
+
+        function toggleForm(mode) {
+            document.getElementById('alert-box').style.display = 'none';
+            document.querySelectorAll('.form-box').forEach(box => box.classList.remove('active'));
+            document.getElementById(`${mode}-box`).classList.add('active');
+        }
+
+        function showAlert(message, isSuccess) {
+            const box = document.getElementById('alert-box');
+            box.textContent = message; box.style.display = 'block';
+            box.className = 'alert-message ' + (isSuccess ? 'success' : 'error');
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+            const nick = document.getElementById('reg-nick').value.trim();
+            const email = document.getElementById('reg-email').value.trim().toLowerCase();
+            const pass = document.getElementById('reg-pass').value;
+
+            const user = { nickname: nick, email: email, password: pass, profilePic: "" };
+            localStorage.setItem(email, JSON.stringify(user));
+
+            showAlert("Conta criada! A redirecionar...", true);
+            setTimeout(() => { toggleForm('login'); document.getElementById('login-email').value = email; }, 1200);
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const pass = document.getElementById('login-pass').value;
+            const savedUser = localStorage.getItem(email);
+
+            if (!savedUser) { showAlert("Erro: E-mail não registado!", false); return; }
+            const user = JSON.parse(savedUser);
+
+            if (user.password === pass) {
+                currentEmail = email;
+                localStorage.setItem('activeSession', email); // Guarda quem está online
+                
+                if (!user.profilePic) {
+                    toggleForm('avatar');
+                } else {
+                    window.location.href = 'feed.html'; // Redireciona para o Feed
+                }
+            } else { showAlert("Erro: Palavra-passe incorreta!", false); }
+        }
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => document.getElementById('profile-preview').src = e.target.result;
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveProfilePicture() {
+            const user = JSON.parse(localStorage.getItem(currentEmail));
+            user.profilePic = document.getElementById('profile-preview').src;
+            localStorage.setItem(currentEmail, JSON.stringify(user));
+            showAlert("Perfil configurado!", true);
+            setTimeout(() => { window.location.href = 'feed.html'; }, 1000);
+        }
+    </script>
+</body>
+</html>
