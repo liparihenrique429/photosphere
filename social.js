@@ -1,14 +1,11 @@
-// Inicializa o banco de dados de posts e utilizadores no LocalStorage do PC
+// Inicializa o banco de dados de posts vazio no LocalStorage do PC
 function getStoragePosts() {
     const posts = localStorage.getItem('photoSphereGlobalPosts');
     if (!posts) {
-        // Posts falsos para o site não iniciar completamente vazio
-        const fakePosts = [
-            { id: "post_1", nickname: "@lara_travels", avatar: "https://dicebear.com", title: "A explorar novas montanhas neste fim de semana de sonho! 🏔️✨", image: "https://unsplash.com", likes: [], comments: [{ user: "@tech_alex", text: "Que fotografia incrível! 😮" }] },
-            { id: "post_2", nickname: "@tech_alex", avatar: "https://dicebear.com", title: "Setup Cyberpunk finalmente concluído no meu quarto! 💻🔥", image: "https://unsplash.com", likes: [], comments: [] }
-        ];
-        localStorage.setItem('photoSphereGlobalPosts', JSON.stringify(fakePosts));
-        return fakePosts;
+        // Agora inicia como uma lista completamente vazia [] sem posts falsos
+        const emptyPosts = [];
+        localStorage.setItem('photoSphereGlobalPosts', JSON.stringify(emptyPosts));
+        return emptyPosts;
     }
     return JSON.parse(posts);
 }
@@ -30,7 +27,7 @@ function toggleLike(postId, userNickname) {
             post.likes.splice(index, 1);
         }
         saveStoragePosts(posts);
-        renderPosts(); // Função que está dentro do feed.html
+        renderPosts(); // Atualiza a timeline no feed.html
     }
 }
 
