@@ -71,3 +71,22 @@ body.feed-body { display: block; overflow-y: auto; background: #090d16; }
 .delete-post-btn { background: transparent; border: none; font-size: 1.1rem; cursor: pointer; padding: 5px; border-radius: 8px; transition: background 0.2s; }
 .delete-post-btn:hover { background: rgba(239, 68, 68, 0.2); }
 .admin-tag { color: #f43f5e; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-left: 5px; letter-spacing: 0.5px; }
+
+/* DESIGN DA BARRA DE PESQUISA CENTRAL */
+#nav-search-input {
+    width: 250px;
+    height: 38px;
+    background: #030712;
+    border: 1px solid #374151;
+    border-radius: 20px;
+    color: #ffffff;
+    padding: 0 15px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+#nav-search-input:focus {
+    border-color: #8b5cf6;
+    width: 300px; /* A barra estica ligeiramente de forma elegante quando clicas */
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+}

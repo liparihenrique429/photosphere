@@ -8,8 +8,13 @@
 </head>
 <body class="feed-body" onload="initFeed()">
 
+    <!-- BARRA DE NAVEGAÇÃO SUPERIOR -->
     <header class="navbar">
         <h1 class="logo-title" onclick="window.location.reload()" style="cursor:pointer">📸 PhotoSphere</h1>
+        
+        <!-- BARRA DE PESQUISA CENTRAL (NOVA) -->
+        <input type="text" id="nav-search-input" placeholder="🔍 Pesquisar por nickname...">
+        
         <div class="nav-right">
             <button class="add-post-btn" onclick="openPublishModal()">➕ Novo Post</button>
             <img id="nav-user-avatar" src="" alt="Perfil" class="nav-avatar">
@@ -17,6 +22,7 @@
         </div>
     </header>
 
+    <!-- TIMELINE DO FEED -->
     <main class="feed-container" id="feed-timeline"></main>
 
     <!-- POPUP DE PUBLICAÇÃO (MODAL) -->
@@ -44,8 +50,10 @@
         </div>
     </div>
 
-    <!-- CARREGAR O ARQUIVO EXTERNO SOCIAL.JS PRIMEIRO -->
+    <!-- ASSOCIAÇÃO DOS FICHEIROS JAVASCRIPT EXTERNOS -->
     <script src="social.js"></script>
+    <script src="search.js"></script> <!-- Ligação ao sistema de pesquisa -->
+    
     <script>
         let currentUser = null;
 
@@ -54,11 +62,12 @@
             if (!sessionEmail) { window.location.href = 'index.html'; return; }
             currentUser = JSON.parse(localStorage.getItem(sessionEmail));
             
+            // Define o avatar do utilizador no canto superior direito
             document.getElementById('nav-user-avatar').src = currentUser.profilePic || "https://dicebear.com" + currentUser.nickname;
             
             renderPosts();
 
-            // Sincroniza em tempo real se mudares de aba
+            // Sincroniza em tempo real se existirem várias abas abertas
             window.addEventListener('storage', () => { renderPosts(); });
         }
 
@@ -67,7 +76,7 @@
             timeline.innerHTML = "";
             const allPosts = getStoragePosts();
 
-            // VERIFICAÇÃO SE É O ADMIN SUPREMO (A tua conta)
+            // Verifica se o utilizador logado é o administrador do sistema
             const isAdmin = (currentUser.email === "liparihenrique429@gmail.com");
 
             allPosts.forEach(post => {
@@ -77,7 +86,7 @@
                 
                 let commentsHTML = post.comments.map(c => `<p class="comment-line"><strong>${c.user}</strong> ${c.text}</p>`).join('');
 
-                // DECISÃO DO BOTÃO DE APAGAR: Se for dono do post OU se for o Admin supremo, mostra o botão
+                // Define se o botão de apagar deve ser exibido (se for dono da foto ou admin)
                 let deleteButtonHTML = "";
                 if (post.nickname === currentUser.nickname || isAdmin) {
                     deleteButtonHTML = `<button class="delete-post-btn" onclick="deletePost('${post.id}')" title="Eliminar Publicação">🗑️</button>`;
@@ -117,6 +126,11 @@
                 `;
                 timeline.appendChild(card);
             });
+
+            // Se o utilizador já tiver algo escrito na barra de pesquisa, reaplica o filtro após desenhar os posts
+            if (typeof filterFeedBySearch === 'function') {
+                filterFeedBySearch();
+            }
         }
 
         function openPublishModal() { document.getElementById('publish-modal').classList.add('active'); }
@@ -129,7 +143,7 @@
 
         function previewPostImage(event) {
             const input = event.target;
-            if (input.files && input.files[0]) {
+            if (input.files && input.files) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const previewImg = document.getElementById('post-preview');
@@ -139,7 +153,7 @@
                     previewImg.style.display = 'block';
                     placeholder.style.display = 'none';
                 };
-                reader.readAsDataURL(input.files[0]);
+                reader.readAsDataURL(input.files);
             }
         }
 
