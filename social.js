@@ -2,7 +2,6 @@
 function getStoragePosts() {
     const posts = localStorage.getItem('photoSphereGlobalPosts');
     if (!posts) {
-        // Agora inicia como uma lista completamente vazia [] sem posts falsos
         const emptyPosts = [];
         localStorage.setItem('photoSphereGlobalPosts', JSON.stringify(emptyPosts));
         return emptyPosts;
@@ -27,7 +26,7 @@ function toggleLike(postId, userNickname) {
             post.likes.splice(index, 1);
         }
         saveStoragePosts(posts);
-        renderPosts(); // Atualiza a timeline no feed.html
+        renderPosts(); 
     }
 }
 
@@ -56,4 +55,17 @@ function sharePost(postId) {
     navigator.clipboard.writeText(fakeLink).then(() => {
         alert("🔗 Link da publicação copiado para a Área de Transferência!");
     });
+}
+
+// LÓGICA DO BOTÃO DE ELIMINAR (NOVO)
+function deletePost(postId) {
+    if (confirm("Tens a certeza de que desejas eliminar permanentemente esta publicação?")) {
+        let posts = getStoragePosts();
+        
+        // Filtra a lista mantendo apenas os posts que NÃO têm o ID selecionado
+        let updatedPosts = posts.filter(p => p.id !== postId);
+        
+        saveStoragePosts(updatedPosts);
+        renderPosts(); // Recarrega a timeline instantaneamente
+    }
 }

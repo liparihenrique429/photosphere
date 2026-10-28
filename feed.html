@@ -54,7 +54,6 @@
             if (!sessionEmail) { window.location.href = 'index.html'; return; }
             currentUser = JSON.parse(localStorage.getItem(sessionEmail));
             
-            // Coloca a foto de perfil no menu superior (Se não tiver usa uma padrão)
             document.getElementById('nav-user-avatar').src = currentUser.profilePic || "https://dicebear.com" + currentUser.nickname;
             
             renderPosts();
@@ -68,6 +67,9 @@
             timeline.innerHTML = "";
             const allPosts = getStoragePosts();
 
+            // VERIFICAÇÃO SE É O ADMIN SUPREMO (A tua conta)
+            const isAdmin = (currentUser.email === "liparihenrique429@gmail.com");
+
             allPosts.forEach(post => {
                 const hasLiked = post.likes.includes(currentUser.nickname);
                 const card = document.createElement('article');
@@ -75,11 +77,21 @@
                 
                 let commentsHTML = post.comments.map(c => `<p class="comment-line"><strong>${c.user}</strong> ${c.text}</p>`).join('');
 
+                // DECISÃO DO BOTÃO DE APAGAR: Se for dono do post OU se for o Admin supremo, mostra o botão
+                let deleteButtonHTML = "";
+                if (post.nickname === currentUser.nickname || isAdmin) {
+                    deleteButtonHTML = `<button class="delete-post-btn" onclick="deletePost('${post.id}')" title="Eliminar Publicação">🗑️</button>`;
+                }
+
                 card.innerHTML = `
-                    <div class="post-user-info">
-                        <img src="${post.avatar}" alt="User">
-                        <span class="post-username">${post.nickname}</span>
+                    <div class="post-header-area">
+                        <div class="post-user-info">
+                            <img src="${post.avatar}" alt="User">
+                            <span class="post-username">${post.nickname} ${isAdmin && post.nickname !== currentUser.nickname ? '<span class="admin-tag">(Moderação)</span>' : ''}</span>
+                        </div>
+                        ${deleteButtonHTML}
                     </div>
+                    
                     <div class="post-image-container">
                         <img src="${post.image}" alt="Post">
                     </div>
@@ -115,7 +127,6 @@
             document.getElementById('preview-placeholder').style.display = 'block';
         }
 
-        // --- FUNÇÃO CORRIGIDA DE PREVIEW ---
         function previewPostImage(event) {
             const input = event.target;
             if (input.files && input.files[0]) {
@@ -125,14 +136,13 @@
                     const placeholder = document.getElementById('preview-placeholder');
                     
                     previewImg.src = e.target.result;
-                    previewImg.style.display = 'block'; // Mostra a tag img
-                    placeholder.style.display = 'none';  // Oculta o texto "Nenhuma foto"
+                    previewImg.style.display = 'block';
+                    placeholder.style.display = 'none';
                 };
-                reader.readAsDataURL(input.files[0]); // Lê e converte de forma forçada e correta
+                reader.readAsDataURL(input.files[0]);
             }
         }
 
-        // --- FUNÇÃO CORRIGIDA DE PUBLICAÇÃO ---
         function handlePublish(event) {
             event.preventDefault();
             const title = document.getElementById('post-title').value.trim();
@@ -148,7 +158,7 @@
                 nickname: currentUser.nickname,
                 avatar: currentUser.profilePic || "https://dicebear.com" + currentUser.nickname,
                 title: title,
-                image: imageSrc, // Envia o texto da imagem convertido em Base64
+                image: imageSrc,
                 likes: [],
                 comments: []
             };
@@ -159,7 +169,7 @@
 
             closePublishModal();
             event.target.reset();
-            renderPosts(); // reconstrói o feed na hora
+            renderPosts();
         }
 
         function logout() { localStorage.removeItem('activeSession'); window.location.href = 'index.html'; }
