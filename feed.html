@@ -12,10 +12,12 @@
     <header class="navbar">
         <h1 class="logo-title" onclick="window.location.reload()" style="cursor:pointer">📸 PhotoSphere</h1>
         
-        <!-- BARRA DE PESQUISA CENTRAL (NOVA) -->
+        <!-- BARRA DE PESQUISA CENTRAL -->
         <input type="text" id="nav-search-input" placeholder="🔍 Pesquisar por nickname...">
         
         <div class="nav-right">
+            <!-- BOTÃO DE ESTATÍSTICAS -->
+            <button class="add-post-btn" style="background: linear-gradient(135deg, #a855f7, #6366f1);" onclick="openAnalyticsModal()">📊 Estatísticas</button>
             <button class="add-post-btn" onclick="openPublishModal()">➕ Novo Post</button>
             <img id="nav-user-avatar" src="" alt="Perfil" class="nav-avatar">
             <button class="logout-link" onclick="logout()">Sair</button>
@@ -50,143 +52,39 @@
         </div>
     </div>
 
-    <!-- ASSOCIAÇÃO DOS FICHEIROS JAVASCRIPT EXTERNOS -->
+    <!-- POPUP DE ESTATÍSTICAS / ANALYTICS -->
+    <div id="analytics-modal" class="modal-overlay">
+        <div class="modal-box" style="border-color: #a855f7;">
+            <div class="modal-header">
+                <h3 style="color: #a855f7;">📊 O Teu Painel de Analytics</h3>
+                <button class="close-modal-btn" onclick="closeAnalyticsModal()">✕</button>
+            </div>
+            <div class="analytics-grid">
+                <div class="stat-card">
+                    <h4>Publicações</h4>
+                    <p id="stat-total-posts">0</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Total de Likes</h4>
+                    <p id="stat-total-likes">0</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Média de Likes</h4>
+                    <p id="stat-avg-likes">0.0</p>
+                </div>
+            </div>
+            <div class="stat-card" style="margin-top: 15px; text-align: left;">
+                <h4>🏆 Maior Sucesso (Legenda):</h4>
+                <p id="stat-best-post" style="font-size: 1rem; color: #e2e8f0; font-weight: normal; margin-top: 5px;">A carregar...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ASSOCIAÇÃO DE TODOS OS FICHEIROS JAVASCRIPT EXTERNOS -->
     <script src="social.js"></script>
-    <script src="search.js"></script> <!-- Ligação ao sistema de pesquisa -->
+    <script src="search.js"></script>
+    <script src="analytics.js"></script>
+    <script src="render.js"></script> <!-- Liga a nova lógica de desenho do ecrã -->
     
-    <script>
-        let currentUser = null;
-
-        function initFeed() {
-            const sessionEmail = localStorage.getItem('activeSession');
-            if (!sessionEmail) { window.location.href = 'index.html'; return; }
-            currentUser = JSON.parse(localStorage.getItem(sessionEmail));
-            
-            // Define o avatar do utilizador no canto superior direito
-            document.getElementById('nav-user-avatar').src = currentUser.profilePic || "https://dicebear.com" + currentUser.nickname;
-            
-            renderPosts();
-
-            // Sincroniza em tempo real se existirem várias abas abertas
-            window.addEventListener('storage', () => { renderPosts(); });
-        }
-
-        function renderPosts() {
-            const timeline = document.getElementById('feed-timeline');
-            timeline.innerHTML = "";
-            const allPosts = getStoragePosts();
-
-            // Verifica se o utilizador logado é o administrador do sistema
-            const isAdmin = (currentUser.email === "liparihenrique429@gmail.com");
-
-            allPosts.forEach(post => {
-                const hasLiked = post.likes.includes(currentUser.nickname);
-                const card = document.createElement('article');
-                card.className = 'post-card';
-                
-                let commentsHTML = post.comments.map(c => `<p class="comment-line"><strong>${c.user}</strong> ${c.text}</p>`).join('');
-
-                // Define se o botão de apagar deve ser exibido (se for dono da foto ou admin)
-                let deleteButtonHTML = "";
-                if (post.nickname === currentUser.nickname || isAdmin) {
-                    deleteButtonHTML = `<button class="delete-post-btn" onclick="deletePost('${post.id}')" title="Eliminar Publicação">🗑️</button>`;
-                }
-
-                card.innerHTML = `
-                    <div class="post-header-area">
-                        <div class="post-user-info">
-                            <img src="${post.avatar}" alt="User">
-                            <span class="post-username">${post.nickname} ${isAdmin && post.nickname !== currentUser.nickname ? '<span class="admin-tag">(Moderação)</span>' : ''}</span>
-                        </div>
-                        ${deleteButtonHTML}
-                    </div>
-                    
-                    <div class="post-image-container">
-                        <img src="${post.image}" alt="Post">
-                    </div>
-                    
-                    <div class="post-actions-bar">
-                        <button class="action-btn ${hasLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}', '${currentUser.nickname}')">
-                            ${hasLiked ? '❤️' : '🤍'} ${post.likes.length}
-                        </button>
-                        <button class="action-btn" onclick="sharePost('${post.id}')">
-                            ↩️ Partilhar
-                        </button>
-                    </div>
-
-                    <div class="post-caption-box">
-                        <p><strong>${post.nickname}</strong> ${post.title}</p>
-                        <div class="comments-section">${commentsHTML}</div>
-                    </div>
-
-                    <form class="comment-form" onsubmit="addComment(event, '${post.id}', '${currentUser.nickname}')">
-                        <input type="text" id="input-comment-${post.id}" required placeholder="Adicione um comentário público...">
-                        <button type="submit" class="send-comment-btn">Publicar</button>
-                    </form>
-                `;
-                timeline.appendChild(card);
-            });
-
-            // Se o utilizador já tiver algo escrito na barra de pesquisa, reaplica o filtro após desenhar os posts
-            if (typeof filterFeedBySearch === 'function') {
-                filterFeedBySearch();
-            }
-        }
-
-        function openPublishModal() { document.getElementById('publish-modal').classList.add('active'); }
-        
-        function closePublishModal() { 
-            document.getElementById('publish-modal').classList.remove('active'); 
-            document.getElementById('post-preview').style.display = 'none';
-            document.getElementById('preview-placeholder').style.display = 'block';
-        }
-
-        function previewPostImage(event) {
-            const input = event.target;
-            if (input.files && input.files) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewImg = document.getElementById('post-preview');
-                    const placeholder = document.getElementById('preview-placeholder');
-                    
-                    previewImg.src = e.target.result;
-                    previewImg.style.display = 'block';
-                    placeholder.style.display = 'none';
-                };
-                reader.readAsDataURL(input.files);
-            }
-        }
-
-        function handlePublish(event) {
-            event.preventDefault();
-            const title = document.getElementById('post-title').value.trim();
-            const imageSrc = document.getElementById('post-preview').src;
-
-            if (!imageSrc || imageSrc === "" || document.getElementById('post-preview').style.display === 'none') {
-                alert("Por favor, selecione uma imagem válida antes de publicar.");
-                return;
-            }
-
-            const newPost = {
-                id: "post_" + Date.now(),
-                nickname: currentUser.nickname,
-                avatar: currentUser.profilePic || "https://dicebear.com" + currentUser.nickname,
-                title: title,
-                image: imageSrc,
-                likes: [],
-                comments: []
-            };
-
-            const globalPosts = getStoragePosts();
-            globalPosts.unshift(newPost);
-            saveStoragePosts(globalPosts);
-
-            closePublishModal();
-            event.target.reset();
-            renderPosts();
-        }
-
-        function logout() { localStorage.removeItem('activeSession'); window.location.href = 'index.html'; }
-    </script>
 </body>
 </html>

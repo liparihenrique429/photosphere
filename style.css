@@ -90,3 +90,31 @@ body.feed-body { display: block; overflow-y: auto; background: #090d16; }
     width: 300px; /* A barra estica ligeiramente de forma elegante quando clicas */
     box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
 }
+
+/* DESIGN DO PAINEL DE ANALYTICS */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 15px;
+}
+.stat-card {
+    background: #030712;
+    border: 1px solid #374151;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+}
+.stat-card h4 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+}
+.stat-card p {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #a855f7;
+    text-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+}
